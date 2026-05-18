@@ -396,12 +396,23 @@ def send_reset_email(email_to: str, code: str):
     """
     message.attach(MIMEText(html, "html"))
     try:
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        # 1. Connect to Port 587 (The modern, unblocked TLS port)
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        
+        # 2. Identify ourselves to the server
+        server.ehlo()
+        
+        # 3. Upgrade the connection to secure TLS
+        server.starttls() 
+        
+        # 4. Login and send
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, email_to, message.as_string())
         server.quit()
+        
+        print(f"SUCCESS: Reset email sent to {email_to}")
     except Exception as e:
-        print(f"Error sending reset email: {e}")
+        print(f"FAILED TO SEND EMAIL: {e}")
 
 @app.post("/api/admin/login")
 def admin_login(password: str = Form(...)):
